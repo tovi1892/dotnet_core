@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <title>TenBis 👍😊😁</title>
+    <link rel="stylesheet" href="css/site.css?v=1" />
+</head>
+
+<body>
+    <h1>TenBis 👍😊😁</h1>
+    <h3>Add New Item</h3>
+    <form action="javascript:void(0);" method="POST" onsubmit="addItem()">
+        <label for="add-name">Item Name:</label>
+        <input type="text" id="add-name" placeholder="New item" required>
+        <label for="add-isMilky">
+            <input type="checkbox" id="add-isMilky"> Is Milky
+        </label>
+        <input type="submit" value="Add Item">
+    </form>
+
+    <div id="editForm">
+        <h3>Edit Item</h3>
+        <form action="javascript:void(0);" onsubmit="updateItem()">
+            <input type="hidden" id="edit-id">
+            <label for="edit-name">Item Name:</label>
+            <input type="text" id="edit-name" required>
+            <label for="edit-isMilky">
+                <input type="checkbox" id="edit-isMilky"> Is Milky
+            </label>
+            <input type="submit" value="Save Changes">
+            <a onclick="closeInput()" aria-label="Close">&#10006;</a>
+        </form>
+    </div>
+
+    <p id="counter"></p>
+
+    <table>
+        <tr style="text-align: center">
+            <th style="text-align: center">Is milky?</th>
+            <th style="text-align: center">Name</th>
+            <th style="text-align: center">Actions</th>
+
+        </tr>
+        <tbody id="products"></tbody>
+    </table>
+    <a href="html/user.html">Transition to users</a>
+    <script src="js/site.js?v=1"></script>
+    <script type="text/javascript">
+        document.addEventListener("DOMContentLoaded", function() {
+            getItems();
+        });
+    </script>
+</body>
+
+</html>
