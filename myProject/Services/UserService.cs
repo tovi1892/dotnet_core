@@ -20,27 +20,40 @@ public class UserService : IUserService
     public UserService(IWebHostEnvironment webHost)
     {
         this.filePath = Path.Combine(webHost.ContentRootPath, "Data", "User.json");
-        using (var jsonFile = File.OpenText(filePath))
+        if (File.Exists(filePath))
         {
-            var content = jsonFile.ReadToEnd();
-            if (string.IsNullOrWhiteSpace(content) || content == "[]")
+            using (var jsonFile = File.OpenText(filePath))
             {
-                Users = new List<User>
+                var content = jsonFile.ReadToEnd();
+                if (string.IsNullOrWhiteSpace(content) || content == "[]")
                 {
-                    new User { Id = 1, Name = "sari Rabinovitch", Age = 20, Gender = "female"},
-                    new User { Id = 2, Name = "Tamer Rotan", Age = 21, Gender = "female"},
-                    new User { Id = 4, Name = "Yahakov Cohen", Age = 13, Gender = "male"},
-                    new User { Id = 3, Name = "Beni Levi", Age = 23, Gender = "male"}
-                };
+                    Users = new List<User>
+                    {
+                        new User { Id = 1, Name = "sari Rabinovitch", Age = 20, Gender = "female", Password = "password1"},
+                        new User { Id = 2, Name = "Tamer Rotan", Age = 21, Gender = "female", Password = "password2"},
+                        new User { Id = 4, Name = "Yahakov Cohen", Age = 13, Gender = "male", Password = "password3"},
+                        new User { Id = 3, Name = "Beni Levi", Age = 23, Gender = "male", Password = "password4"}
+                    };
+                }
+                else
+                {
+                    Users = JsonSerializer.Deserialize<List<User>>(content,
+                    new JsonSerializerOptions
+                    {
+                        PropertyNameCaseInsensitive = true
+                    }) ?? new List<User>();
+                }
             }
-            else
+        }
+        else
+        {
+            Users = new List<User>
             {
-                Users = JsonSerializer.Deserialize<List<User>>(content,
-                new JsonSerializerOptions
-                {
-                    PropertyNameCaseInsensitive = true
-                }) ?? new List<User>();
-            }
+                new User { Id = 1, Name = "sari Rabinovitch", Age = 20, Gender = "female", Password = "password1"},
+                new User { Id = 2, Name = "Tamer Rotan", Age = 21, Gender = "female", Password = "password2"},
+                new User { Id = 4, Name = "Yahakov Cohen", Age = 13, Gender = "male", Password = "password3"},
+                new User { Id = 3, Name = "Beni Levi", Age = 23, Gender = "male", Password = "password4"}
+            };
         }
     }
 
@@ -96,6 +109,11 @@ public class UserService : IUserService
         saveToFile();
 
         return true;
+    }
+
+    public User Login(string name, string password)
+    {
+        return Users.FirstOrDefault(u => u.Name == name && u.Password == password);
     }
 }
 

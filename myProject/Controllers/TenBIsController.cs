@@ -1,11 +1,13 @@
 using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic; 
-using myProject.Interfaces; 
+using myProject.Interfaces;
+using Microsoft.AspNetCore.Authorization; 
 
 namespace myProject.Controllers
 {
     [ApiController]
     [Route("[controller]")]
+    [Authorize]
     public class TenBIsController : ControllerBase
     {
         private readonly ITenBisService _tenBIsService; 

@@ -54,7 +54,11 @@
 
     <script src="../js/users.js?v=1"></script>
     <script type="text/javascript">
-        getItems();
+        if (!localStorage.getItem('token')) {
+            window.location.href = '../login.html';
+        } else {
+            getItems();
+        }
     </script>
 
 </body>

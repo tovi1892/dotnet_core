@@ -8,6 +8,7 @@
 </head>
 
 <body>
+    <div id="greeting"></div>
     <h1>TenBis 👍😊😁</h1>
     <h3>Add New Item</h3>
     <form action="javascript:void(0);" method="POST" onsubmit="addItem()">
@@ -47,9 +48,17 @@
     <a href="html/user.html">Transition to users</a>
     <script src="js/site.js?v=1"></script>
     <script type="text/javascript">
-        document.addEventListener("DOMContentLoaded", function() {
-            getItems();
-        });
+        if (!localStorage.getItem('token')) {
+            window.location.href = 'login.html';
+        } else {
+            const username = getUsername();
+            if (username) {
+                document.getElementById('greeting').textContent = 'Hello ' + username;
+            }
+            document.addEventListener("DOMContentLoaded", function() {
+                getItems();
+            });
+        }
     </script>
 </body>
 

@@ -2,10 +2,15 @@
 using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
 using myProject.Interfaces;
+using System.Security.Claims;
+using myProject.Services;
+using myProject.Models;
+using Microsoft.AspNetCore.Authorization;
 namespace myProject.Controllers;
 
 [ApiController]
 [Route("[controller]")]
+[Authorize]
 public class UserController : ControllerBase
 {
     IUserService userService;
@@ -60,6 +65,24 @@ public class UserController : ControllerBase
         if (!userService.Delete(id))
             return NotFound();
         return Ok(user);
+    }
+
+    [HttpPost("login")]
+    [AllowAnonymous]
+    public ActionResult Login(LoginRequest request)
+    {
+        var user = userService.Login(request.Name, request.Password);
+        if (user == null)
+            return Unauthorized();
+        var claims = new List<Claim>
+        {
+            new Claim("username", user.Name),
+            new Claim("userid", user.Id.ToString()),
+            new Claim("usertype", "User")
+        };
+        var token = FbiTokenService.GetToken(claims);
+        var tokenString = FbiTokenService.WriteToken(token);
+        return Ok(new { token = tokenString });
     }
 
 }

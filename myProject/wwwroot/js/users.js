@@ -1,9 +1,33 @@
 const uri = '/User';
 let users = [];
 
+function getHeaders() {
+    const headers = {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json'
+    };
+    const token = localStorage.getItem('token');
+    if (token) {
+        headers['Authorization'] = 'Bearer ' + token;
+    }
+    return headers;
+}
+
 function getItems() {
-    fetch(uri)
-        .then(response => response.json())
+    fetch(uri, {
+        headers: getHeaders()
+    })
+        .then(response => {
+            if (!response.ok) {
+                if (response.status === 401) {
+                    localStorage.removeItem('token');
+                    window.location.href = '../login.html';
+                    return;
+                }
+                throw new Error('HTTP error ' + response.status);
+            }
+            return response.json();
+        })
         .then(data => displayItems(data))
         .catch(error => console.error('Unable to get items.', error));
 }
@@ -20,13 +44,20 @@ function addItem() {
 
     fetch(uri, {
             method: 'POST',
-            headers: {
-                'Accept': 'application/json',
-                'Content-Type': 'application/json'
-            },
+            headers: getHeaders(),
             body: JSON.stringify(user)
         })
-        .then(response => response.json())
+        .then(response => {
+            if (!response.ok) {
+                if (response.status === 401) {
+                    localStorage.removeItem('token');
+                    window.location.href = '../login.html';
+                    return;
+                }
+                throw new Error('HTTP error ' + response.status);
+            }
+            return response.json();
+        })
         .then(() => {
             getItems();
             addNameTextbox.value = '';
@@ -36,7 +67,19 @@ function addItem() {
 
 function deleteItem(id) {
     fetch(`${uri}/${id}`, {
-            method: 'DELETE'
+            method: 'DELETE',
+            headers: getHeaders()
+        })
+        .then(response => {
+            if (!response.ok) {
+                if (response.status === 401) {
+                    localStorage.removeItem('token');
+                    window.location.href = '../login.html';
+                    return;
+                }
+                throw new Error('HTTP error ' + response.status);
+            }
+            return response;
         })
         .then(() => getItems())
         .catch(error => console.error('Unable to delete user.', error));
@@ -64,11 +107,19 @@ function updateItem() {
 
     fetch(`${uri}/${userId}`, {
             method: 'PUT',
-            headers: {
-                'Accept': 'application/json',
-                'Content-Type': 'application/json'
-            },
+            headers: getHeaders(),
             body: JSON.stringify(user)
+        })
+        .then(response => {
+            if (!response.ok) {
+                if (response.status === 401) {
+                    localStorage.removeItem('token');
+                    window.location.href = '../login.html';
+                    return;
+                }
+                throw new Error('HTTP error ' + response.status);
+            }
+            return response;
         })
         .then(() => getItems())
         .catch(error => console.error('Unable to update user.', error));

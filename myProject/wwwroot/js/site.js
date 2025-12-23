@@ -1,9 +1,44 @@
 const uri = '/TenBIs';
 let items = [];
 
+function getHeaders() {
+    const headers = {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json'
+    };
+    const token = localStorage.getItem('token');
+    if (token) {
+        headers['Authorization'] = 'Bearer ' + token;
+    }
+    return headers;
+}
+
+function getUsername() {
+    const token = localStorage.getItem('token');
+    if (!token) return null;
+    try {
+        const payload = JSON.parse(atob(token.split('.')[1]));
+        return payload.username;
+    } catch (e) {
+        return null;
+    }
+}
+
 function getItems() {
-    fetch(uri)
-        .then(response => response.json())
+    fetch(uri, {
+        headers: getHeaders()
+    })
+        .then(response => {
+            if (!response.ok) {
+                if (response.status === 401) {
+                    localStorage.removeItem('token');
+                    window.location.href = 'login.html';
+                    return;
+                }
+                throw new Error('HTTP error ' + response.status);
+            }
+            return response.json();
+        })
         .then(data => _displayItems(data))
         .catch(error => console.error('Unable to get items.', error));
 }
@@ -19,14 +54,18 @@ function addItem() {
 
     fetch(uri, {
             method: 'POST',
-            headers: {
-                'Accept': 'application/json',
-                'Content-Type': 'application/json'
-            },
+            headers: getHeaders(),
             body: JSON.stringify(item)
         })
         .then(response => {
-            if (!response.ok) throw new Error('Network response was not ok');
+            if (!response.ok) {
+                if (response.status === 401) {
+                    localStorage.removeItem('token');
+                    window.location.href = 'login.html';
+                    return;
+                }
+                throw new Error('Network response was not ok');
+            }
             return response.json();
         })
         .then(() => {
@@ -39,7 +78,19 @@ function addItem() {
 
 function deleteItem(id) {
     fetch(`${uri}/${id}`, {
-            method: 'DELETE'
+            method: 'DELETE',
+            headers: getHeaders()
+        })
+        .then(response => {
+            if (!response.ok) {
+                if (response.status === 401) {
+                    localStorage.removeItem('token');
+                    window.location.href = 'login.html';
+                    return;
+                }
+                throw new Error('HTTP error ' + response.status);
+            }
+            return response;
         })
         .then(() => getItems())
         .catch(error => console.error('Unable to delete user.', error));
@@ -63,11 +114,19 @@ function updateItem() {
 
     fetch(`${uri}/${itemId}`, {
             method: 'PUT',
-            headers: {
-                'Accept': 'application/json',
-                'Content-Type': 'application/json'
-            },
+            headers: getHeaders(),
             body: JSON.stringify(item)
+        })
+        .then(response => {
+            if (!response.ok) {
+                if (response.status === 401) {
+                    localStorage.removeItem('token');
+                    window.location.href = 'login.html';
+                    return;
+                }
+                throw new Error('HTTP error ' + response.status);
+            }
+            return response;
         })
         .then(() => getItems())
         .catch(error => console.error('Unable to update item.', error));

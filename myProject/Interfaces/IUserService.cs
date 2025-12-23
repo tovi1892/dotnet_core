@@ -20,4 +20,6 @@ public interface IUserService
      bool Update(int id, User newUser);
 
      bool Delete(int id);
+
+     User Login(string name, string password);
 }
