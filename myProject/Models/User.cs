@@ -1,4 +1,4 @@
-namespace myProject;
+namespace myProject.Models;
 
 public class User
 {

@@ -4,89 +4,61 @@ using System.Linq;
 using myProject.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using System.Security.Claims;
+using myProject.Models;
 
 namespace myProject.Controllers
 {
-    [ApiController]
-    [Route("api/[controller]")]  // ← CHANGED: Add /api prefix for REST convention
-    [Authorize]
-    public class TenBIsController : ControllerBase
+ [ApiController]
+[Route("api/[controller]")]
+[Authorize]
+public class TenBIsController : ControllerBase
+{
+    private readonly ITenBisService _tenBisService; 
+    
+    public TenBIsController(ITenBisService tenBisService)
     {
-        private readonly ITenBisService _tenBIsService; 
-        
-        public TenBIsController(ITenBisService tenBIsService)
-        {
-            _tenBIsService = tenBIsService; 
-        }
-
-        // ← NEW METHOD: Helper to extract userId from JWT token
-        private int GetUserId()
-        {
-            return int.Parse(User.FindFirst("userid")?.Value ?? "0");
-        }
-
-        [HttpGet()]
-        public ActionResult<IEnumerable<TenBIs>> Get()
-        {
-            var userId = GetUserId();
-            // ← CHANGED: Filter items to only show current user's items
-            return _tenBIsService.Get().Where(x => x.UserId == userId).ToList(); 
-        }
-
-        // ← NEW ENDPOINT: Get current user's items (convenience endpoint)
-        [HttpGet("me")]
-        public ActionResult<IEnumerable<TenBIs>> GetMe()
-        {
-            var userId = GetUserId();
-            return _tenBIsService.Get().Where(x => x.UserId == userId).ToList(); 
-        }
-
-        [HttpGet("{id}")]
-        public ActionResult<TenBIs> Get(int id)
-        {
-            var userId = GetUserId();
-            var tenBIs = _tenBIsService.Get(id);
-            // ← NEW: Validate ownership before returning
-            if (tenBIs == null || tenBIs.UserId != userId)
-                return NotFound();
-            return tenBIs; 
-        }
-
-        [HttpPost]
-        public ActionResult Create(TenBIs newTenBIs)
-        {
-            // ← NEW: Automatically assign UserId from token (prevent user from changing it)
-            newTenBIs.UserId = GetUserId();
-            var postedTenBIs = _tenBIsService.Create(newTenBIs); 
-            return CreatedAtAction(nameof(Get), new { id = postedTenBIs.Id }, postedTenBIs);
-        }
-
-        [HttpPut("{id}")]
-        public ActionResult Update(int id, TenBIs newTenBIs)
-        {
-            var userId = GetUserId();
-            var tenBIs = _tenBIsService.Find(id);
-            // ← NEW: Validate ownership before allowing update
-            if (tenBIs == null || tenBIs.UserId != userId)
-                return NotFound();
-            newTenBIs.Id = id;
-            newTenBIs.UserId = userId;  // ← NEW: Enforce user ownership
-            if (!_tenBIsService.Update(id, newTenBIs))
-                return BadRequest();
-            return Ok(newTenBIs);
-        }
-
-        [HttpDelete("{id}")]
-        public ActionResult Delete(int id)
-        {
-            var userId = GetUserId();
-            var tenBIs = _tenBIsService.Find(id);
-            // ← NEW: Validate ownership before allowing deletion
-            if (tenBIs == null || tenBIs.UserId != userId)
-                return NotFound();
-            if (!_tenBIsService.Delete(id))
-                return NotFound();
-            return Ok(tenBIs);
-        }
+        _tenBisService = tenBisService; 
     }
+
+    [HttpGet]
+    public ActionResult<IEnumerable<TenBIs>> Get()
+    {
+        // הסרוויס כבר מחזיר רק את הפריטים של המשתמש המחובר!
+        return Ok(_tenBisService.GetAll());
+    }
+
+    [HttpGet("{id}")]
+    public ActionResult<TenBIs> Get(int id)
+    {
+        var item = _tenBisService.GetById(id);
+        if (item == null) return NotFound(); // יחזיר NotFound גם אם הפריט שייך למישהו אחר
+        return Ok(item); 
+    }
+
+    [HttpPost]
+    public ActionResult Create(TenBIs newTenBIs)
+    {
+        _tenBisService.Add(newTenBIs); // ה-UserId מוצמד אוטומטית בפנים
+        return CreatedAtAction(nameof(Get), new { id = newTenBIs.Id }, newTenBIs);
+    }
+
+    [HttpPut("{id}")]
+    public ActionResult Update(int id, TenBIs newTenBIs)
+    {
+        newTenBIs.Id = id;
+        if (!_tenBisService.Update(newTenBIs))
+            return Forbid(); // או NotFound
+            
+        return Ok(newTenBIs);
+    }
+
+    [HttpDelete("{id}")]
+    public ActionResult Delete(int id)
+    {
+        if (!_tenBisService.Delete(id))
+            return NotFound();
+            
+        return NoContent();
+    }
+}
 }

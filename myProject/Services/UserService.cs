@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using System;
 using myProject.Interfaces;
+using myProject.Models;
 using System.Security.Cryptography.X509Certificates;
 using Microsoft.Extensions.DependencyInjection;
 using System.Collections.Generic;
@@ -10,7 +11,7 @@ using System.Linq;
 using System.Text.Json;
 using Microsoft.AspNetCore.Hosting;
 
-namespace myProject;
+namespace myProject.Services;
 
 public class UserService : IUserService
 {
@@ -93,12 +94,12 @@ public class UserService : IUserService
         return Users;
     }
 
-    public User find(int id)
+    public User? find(int id)
     {
         return Users.FirstOrDefault(p => p.Id == id);
     }
 
-    public User Get(int id) => find(id);
+    public User? Get(int id) => find(id);
 
     public User Create(User newUser)
     {
@@ -135,7 +136,7 @@ public class UserService : IUserService
         return true;
     }
 
-    public User Login(string name, string password)
+    public User? Login(string name, string password)
     {
         return Users.FirstOrDefault(u => u.Name == name && u.Password == password);
     }

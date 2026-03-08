@@ -1,4 +1,4 @@
-const uri = '/TenBIs';
+const uri = '/api/TenBIs';
 let items = [];
 
 function getHeaders() {
@@ -101,7 +101,7 @@ function displayEditForm(id) {
 
     document.getElementById('edit-name').value = item.name;
     document.getElementById('edit-id').value = item.id;
-    document.getElementById('edit-isMilky').checked = item.ismilky;
+    document.getElementById('edit-isMilky').checked = item.isMilky;
     document.getElementById('editForm').style.display = 'block';
 }
 
@@ -153,9 +153,9 @@ function _displayItems(data) {
 
     data.forEach(item => {
         let isMilkySpan = document.createElement('span');
-        isMilkySpan.textContent = item.ismilky ? '✓' : '✗';
+        isMilkySpan.textContent = item.isMilky ? '✓' : '✗';
         isMilkySpan.style.fontSize = '1.2em';
-        isMilkySpan.style.color = item.ismilky ? 'green' : 'red';
+        isMilkySpan.style.color = item.isMilky ? 'green' : 'red';
 
         let editButton = document.createElement('button');
         editButton.innerText = 'Edit';

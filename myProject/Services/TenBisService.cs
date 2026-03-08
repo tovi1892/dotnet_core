@@ -1,84 +1,76 @@
-using Microsoft.AspNetCore.Mvc;
-using System;
 using myProject.Interfaces;
-using System.Security.Cryptography.X509Certificates;
-using Microsoft.Extensions.DependencyInjection;
+using myProject.Models;
+using System.Collections.Generic;
+using System.Linq;
 
-namespace myProject.Services;
-
-public class TenBisService : ITenBisService
-
+namespace myProject.Services
 {
-    private  List<TenBIs> list;
-
-    public  TenBisService()
+    public class TenBisService : ITenBisService
     {
-           list = new List<TenBIs>
+        private readonly ITenBisRepository _repository;
+        private readonly IActiveUser _activeUser;
+
+        public TenBisService(ITenBisRepository repository, IActiveUser activeUser)
         {
-            // User 1's items
-            new TenBIs { Id = 1, Name = "Belgian waffle", Ismilky = true, UserId = 1 },
-            new TenBIs { Id = 2, Name = "toast", Ismilky = true, UserId = 1 },
-            // User 2's items
-            new TenBIs { Id = 3, Name = "Shakshuka", Ismilky = false, UserId = 2 },
-            // User 5's items  
-            new TenBIs { Id = 4, Name = "Hummus with Bread", Ismilky = false, UserId = 5 },
-            // User 6's items
-            new TenBIs { Id = 5, Name = "Falafel Plate", Ismilky = false, UserId = 6 }
-        };
-    }
-  
+            _repository = repository;
+            _activeUser = activeUser;
+        }
 
-    public List<TenBIs> Get()
-    {
-        return list;
-    }
-
-    public TenBIs Find(int id)
-    {
-        return list.FirstOrDefault(p => p.Id == id);
-
-    }
-
-    public TenBIs Get(int id) => Find(id);
-
-    public TenBIs Create(TenBIs newTenBIs)
-    {
-        var maxId = list.Max(p => p.Id);
-        newTenBIs.Id = maxId + 1;
-        list.Add(newTenBIs);
-        return newTenBIs;
-    }
-
-    public bool Update(int id, TenBIs newTenBIs)
-    {
-        var TenBIs = Find(id);
-        if (TenBIs == null)
-            return false;
-        if (TenBIs.Id != newTenBIs.Id)
-            return false;
-
-        var index = list.IndexOf(TenBIs);
-        list[index] = newTenBIs;
-
-        return true;
-    }
-
-    public bool Delete(int id)
-    {
-        var TenBIs = Find(id);
-        if (TenBIs == null)
-            return false;
-        list.Remove(TenBIs);
-        return true;
-    }
-      
-}
-
-public static class TenBisSExtension
-    {
-    public   static void AddTenBis(this IServiceCollection services)
+        private int GetActiveUserId()
         {
-            services.AddSingleton<ITenBisService,TenBisService>();          
+            return _activeUser?.ActiveUser?.Id 
+                ?? throw new System.UnauthorizedAccessException("חובה להיות מחובר למערכת!");
+        }
+
+        public List<TenBIs> GetAll()
+        {
+            var activeUserId = GetActiveUserId();
+            return _repository.Get()
+                .Where(t => t.UserId == activeUserId)
+                .ToList();
+        }
+
+        public TenBIs? GetById(int id)
+        {
+            var activeUserId = GetActiveUserId();
+            var item = _repository.Find(id);
+            
+            if (item != null && item.UserId == activeUserId)
+                return item;
+            
+            return null;
+        }
+
+        public void Add(TenBIs item)
+        {
+            var activeUserId = GetActiveUserId();
+            item.UserId = activeUserId;
+            _repository.Create(item);
+        }
+
+        public bool Update(TenBIs item)
+        {
+            var activeUserId = GetActiveUserId();
+            var existing = _repository.Find(item.Id);
+            
+            if (existing == null || existing.UserId != activeUserId)
+                return false;
+
+            item.UserId = activeUserId;
+            return _repository.Update(item.Id, item);
+        }
+
+        public bool Delete(int id)
+        {
+            var activeUserId = GetActiveUserId();
+            var item = _repository.Find(id);
+            
+            if (item == null || item.UserId != activeUserId)
+                return false;
+
+            return _repository.Delete(id);
         }
     }
 
+    
+}

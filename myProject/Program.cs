@@ -8,8 +8,20 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 
 builder.Services.AddControllers();
-builder.Services.AddTenBis();
-builder.Services.addUserService();
+// builder.Services.AddTenBis();
+// builder.Services.addUserService();
+// רישום ה-UserService (ניהול קובץ המשתמשים)
+builder.Services.addUserService(); 
+
+// רישום ה-Repository (המחסן של הנתונים הגולמיים) - חייב להיות Singleton
+builder.Services.AddSingleton<ITenBisRepository, TenBisRepository>();
+
+// רישום ה-ActiveUserService (הזיהוי של המשתמש המחובר) - Scoped
+builder.Services.AddHttpContextAccessor(); // חובה כדי שה-ActiveUser יוכל לגשת ל-Token
+builder.Services.AddScoped<IActiveUser, ActiveUserService>();
+
+// רישום ה-TenBisService (הלוגיקה והאבטחה) - Scoped
+builder.Services.AddScoped<ITenBisService, TenBisService>();
 
 // Add authentication
 builder.Services
