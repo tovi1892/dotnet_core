@@ -15,9 +15,15 @@ public class TenBisService : ITenBisService
     {
            list = new List<TenBIs>
         {
-            new TenBIs { Id = 1, Name = "Belgian waffle", Ismilky = true},
-            new TenBIs { Id = 2, Name = "toast",Ismilky=true},
-            new TenBIs { Id = 3, Name = "Shakshuka"}
+            // User 1's items
+            new TenBIs { Id = 1, Name = "Belgian waffle", Ismilky = true, UserId = 1 },
+            new TenBIs { Id = 2, Name = "toast", Ismilky = true, UserId = 1 },
+            // User 2's items
+            new TenBIs { Id = 3, Name = "Shakshuka", Ismilky = false, UserId = 2 },
+            // User 5's items  
+            new TenBIs { Id = 4, Name = "Hummus with Bread", Ismilky = false, UserId = 5 },
+            // User 6's items
+            new TenBIs { Id = 5, Name = "Falafel Plate", Ismilky = false, UserId = 6 }
         };
     }
   

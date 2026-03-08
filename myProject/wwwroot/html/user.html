@@ -16,6 +16,16 @@
     <form action="javascript:void(0);" method="POST" onsubmit="addItem()">
         <label for="add-name">User Name:</label>
         <input type="text" id="add-name" placeholder="New user" required>
+        <label for="add-age">Age:</label>
+        <input type="number" id="add-age" required>
+        <label for="add-gender">Gender:</label>
+        <select id="add-gender">
+            <option value="male">Male</option>
+            <option value="female">Female</option>
+        </select>
+        <!-- ← NEW: Add password field -->
+        <label for="add-password">Password:</label>
+        <input type="password" id="add-password" required>
         <input type="submit" value="Add User">
     </form>
 
@@ -32,6 +42,9 @@
                 <option value="male">Male</option>
                 <option value="female">Female</option>
             </select>
+            <!-- ← NEW: Add password field for editing -->
+            <label for="edit-password">Password:</label>
+            <input type="password" id="edit-password" required>
             <input type="submit" value="Save Changes">
             <a onclick="closeInput()" aria-label="Close">&#10006;</a>
         </form>

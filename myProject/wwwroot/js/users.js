@@ -1,4 +1,5 @@
-const uri = '/User';
+// ← CHANGED: Update endpoint URL to include /api prefix
+const uri = '/api/User';
 let users = [];
 
 function getHeaders() {
@@ -34,11 +35,15 @@ function getItems() {
 
 function addItem() {
     const addNameTextbox = document.getElementById('add-name');
+    const addAge = document.getElementById('add-age');
+    const addGender = document.getElementById('add-gender');
+    const addPassword = document.getElementById('add-password');  // ← NEW: Include password field
 
     const user = {
         name: addNameTextbox.value.trim(),
-        age: 0,
-        gender: '',
+        age: parseInt(addAge.value),
+        gender: addGender.value,
+        password: addPassword.value  // ← NEW: Send password in request
     };
 
 
@@ -61,6 +66,9 @@ function addItem() {
         .then(() => {
             getItems();
             addNameTextbox.value = '';
+            addAge.value = '';
+            addGender.value = '';
+            addPassword.value = '';  // ← NEW: Clear password field
         })
         .catch(error => console.error('Unable to add user.', error));
 }
@@ -92,6 +100,7 @@ function displayEditForm(id) {
     document.getElementById('edit-name').value = user.name;
     document.getElementById('edit-age').value = user.age;
     document.getElementById('edit-gender').value = user.gender;
+    // Note: Password is not populated for security reasons
     document.getElementById('editForm').style.display = 'block';
 }
 
@@ -102,6 +111,7 @@ function updateItem() {
         name: document.getElementById('edit-name').value.trim(),
         age: document.getElementById('edit-age').value.trim(),
         gender: document.getElementById('edit-gender').value.trim(),
+        password: document.getElementById('edit-password').value.trim(),  // ← NEW: Include password for editing
     };
 
 

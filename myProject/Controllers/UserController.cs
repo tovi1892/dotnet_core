@@ -9,7 +9,7 @@ using Microsoft.AspNetCore.Authorization;
 namespace myProject.Controllers;
 
 [ApiController]
-[Route("[controller]")]
+[Route("api/[controller]")]  // ← CHANGED: Add /api prefix
 [Authorize]
 public class UserController : ControllerBase
 {
@@ -20,14 +20,26 @@ public class UserController : ControllerBase
         this.userService = userService;
     }
 
+    // ← NEW ENDPOINT: Get current user's own profile
+    [HttpGet("me")]
+    public ActionResult<User> GetMe()
+    {
+        var userId = int.Parse(User.FindFirst("userid")?.Value ?? "0");
+        var user = userService.Get(userId);
+        if (user == null)
+            return NotFound();
+        return user;
+    }
 
     [HttpGet()]
+    [Authorize(Policy = "Admin")]  // ← NEW: Only Admins can list all users
     public ActionResult<IEnumerable<User>> Get()
     {
         return userService.Get();
     }
 
     [HttpGet("{id}")]
+    [Authorize(Policy = "Admin")]  // ← NEW: Only Admins can view specific users
     public ActionResult<User> Get(int id)
     {
         var user = userService.Get(id);
@@ -37,6 +49,7 @@ public class UserController : ControllerBase
     }
 
     [HttpPost]
+    [Authorize(Policy = "Admin")]  // ← NEW: Only Admins can create users
     public ActionResult Create(User newUser)
     {
         var postedUser = userService.Create(newUser);
@@ -46,6 +59,13 @@ public class UserController : ControllerBase
     [HttpPut("{id}")]
     public ActionResult Update(int id, User newUser)
     {
+        // ← NEW: Users can update themselves, Admins can update anyone
+        var currentUserId = int.Parse(User.FindFirst("userid")?.Value ?? "0");
+        var isAdmin = User.FindFirst("usertype")?.Value == "Admin";
+        
+        if (currentUserId != id && !isAdmin)
+            return Forbid();
+
         var user = userService.find(id);
         if (user == null)
             return NotFound();
@@ -56,10 +76,10 @@ public class UserController : ControllerBase
     }
 
     [HttpDelete("{id}")]
+    [Authorize(Policy = "Admin")]  // ← NEW: Only Admins can delete users
     public ActionResult Delete(int id)
     {
         var user = userService.find(id);
-
         if (user == null)
             return NotFound();
         if (!userService.Delete(id))
@@ -71,18 +91,28 @@ public class UserController : ControllerBase
     [AllowAnonymous]
     public ActionResult Login(LoginRequest request)
     {
+        // ← NEW: Added debug logging
+        Console.WriteLine($"Login attempt: Name='{request.Name}', Password='{request.Password}'");
         var user = userService.Login(request.Name, request.Password);
+        Console.WriteLine($"User found: {user != null}");
+        if (user != null)
+        {
+            Console.WriteLine($"User: {user.Name}, Password: {user.Password}");
+        }
         if (user == null)
             return Unauthorized();
+        
+        // ← NEW: Dynamic usertype assignment - checks if user is admin
+        var userType = user.Name == "admin" || user.Name == "sari Rabinovitch" ? "Admin" : "User";
+        
         var claims = new List<Claim>
         {
             new Claim("username", user.Name),
             new Claim("userid", user.Id.ToString()),
-            new Claim("usertype", "User")
+            new Claim("usertype", userType)  // ← CHANGED: Now dynamic, not hardcoded "User"
         };
         var token = FbiTokenService.GetToken(claims);
         var tokenString = FbiTokenService.WriteToken(token);
         return Ok(new { token = tokenString });
     }
-
 }

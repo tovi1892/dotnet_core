@@ -16,45 +16,69 @@ public class UserService : IUserService
 {
     private List<User> Users;
     private string filePath;
+    
+    // ← NEW: Extracted default initialization for better maintainability
+    private List<User> GetDefaultUsers()
+    {
+        return new List<User>
+        {
+            new User { Id = 1, Name = "sari Rabinovitch", Age = 20, Gender = "female", Password = "password1"},
+            new User { Id = 2, Name = "Tamer Rotan", Age = 21, Gender = "female", Password = "password2"},
+            new User { Id = 4, Name = "Yahakov Cohen", Age = 13, Gender = "male", Password = "password3"},
+            new User { Id = 3, Name = "Beni Levi", Age = 23, Gender = "male", Password = "password4"},
+            new User { Id = 5, Name = "admin", Age = 25, Gender = "male", Password = "admin"},  // ← NEW: Admin user
+            new User { Id = 6, Name = "user", Age = 22, Gender = "female", Password = "user"}  // ← NEW: Regular user for testing
+        };
+    }
 
     public UserService(IWebHostEnvironment webHost)
     {
         this.filePath = Path.Combine(webHost.ContentRootPath, "Data", "User.json");
+        
+        // ← NEW: Always start with defaults
+        Users = GetDefaultUsers();
+        
+        // ← NEW: If file exists and has data, load it and ensure admin user exists
         if (File.Exists(filePath))
         {
-            using (var jsonFile = File.OpenText(filePath))
+            try
             {
-                var content = jsonFile.ReadToEnd();
-                if (string.IsNullOrWhiteSpace(content) || content == "[]")
+                using (var jsonFile = File.OpenText(filePath))
                 {
-                    Users = new List<User>
+                    var content = jsonFile.ReadToEnd();
+                    if (!string.IsNullOrWhiteSpace(content) && content != "[]")
                     {
-                        new User { Id = 1, Name = "sari Rabinovitch", Age = 20, Gender = "female", Password = "password1"},
-                        new User { Id = 2, Name = "Tamer Rotan", Age = 21, Gender = "female", Password = "password2"},
-                        new User { Id = 4, Name = "Yahakov Cohen", Age = 13, Gender = "male", Password = "password3"},
-                        new User { Id = 3, Name = "Beni Levi", Age = 23, Gender = "male", Password = "password4"}
-                    };
-                }
-                else
-                {
-                    Users = JsonSerializer.Deserialize<List<User>>(content,
-                    new JsonSerializerOptions
-                    {
-                        PropertyNameCaseInsensitive = true
-                    }) ?? new List<User>();
+                        var loadedUsers = JsonSerializer.Deserialize<List<User>>(content,
+                        new JsonSerializerOptions
+                        {
+                            PropertyNameCaseInsensitive = true
+                        });
+                        
+                        if (loadedUsers != null && loadedUsers.Count > 0)
+                        {
+                            Users = loadedUsers;
+                            // ← NEW: Ensure required admin users exist even if file is old
+                            var defaultUsers = GetDefaultUsers();
+                            foreach (var defaultUser in defaultUsers.Where(u => u.Name == "admin" || u.Name == "user"))
+                            {
+                                if (!Users.Any(u => u.Name == defaultUser.Name))
+                                {
+                                    Users.Add(defaultUser);
+                                }
+                            }
+                        }
+                    }
                 }
             }
-        }
-        else
-        {
-            Users = new List<User>
+            catch
             {
-                new User { Id = 1, Name = "sari Rabinovitch", Age = 20, Gender = "female", Password = "password1"},
-                new User { Id = 2, Name = "Tamer Rotan", Age = 21, Gender = "female", Password = "password2"},
-                new User { Id = 4, Name = "Yahakov Cohen", Age = 13, Gender = "male", Password = "password3"},
-                new User { Id = 3, Name = "Beni Levi", Age = 23, Gender = "male", Password = "password4"}
-            };
+                // ← NEW: Better error handling - fallback to defaults
+                Users = GetDefaultUsers();
+            }
         }
+        
+        // ← NEW: Ensure data is persisted
+        saveToFile();
     }
 
     private void saveToFile()
