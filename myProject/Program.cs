@@ -79,7 +79,7 @@ if (app.Environment.IsDevelopment())
         options.SwaggerEndpoint("/swagger/v1/swagger.json", "v1");
     });
 }
-// ← NEW: Explicitly set login.html as default file  
+// ← CHANGED: Set login.html as default file and enable directory browsing  
 app.UseDefaultFiles(new DefaultFilesOptions
 {
     DefaultFileNames = new List<string> { "login.html" }

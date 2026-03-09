@@ -1,4 +1,3 @@
-
 using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
 using myProject.Interfaces;
@@ -39,9 +38,13 @@ public class UserController : ControllerBase
     }
 
     [HttpGet("{id}")]
-    [Authorize(Policy = "Admin")]  // ← NEW: Only Admins can view specific users
     public ActionResult<User> Get(int id)
     {
+        var currentUserId = int.Parse(User.FindFirst("userid")?.Value ?? "0");
+        var isAdmin = User.FindFirst("usertype")?.Value == "Admin";
+        if (!isAdmin && currentUserId != id)
+            return Forbid();  // משתמש רגיל יכול לגשת רק לפרופיל שלו
+
         var user = userService.Get(id);
         if (user == null)
             return NotFound();

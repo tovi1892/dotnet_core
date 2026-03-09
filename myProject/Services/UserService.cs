@@ -1,4 +1,3 @@
-
 using Microsoft.AspNetCore.Mvc;
 using System;
 using myProject.Interfaces;
@@ -18,7 +17,6 @@ public class UserService : IUserService
     private List<User> Users;
     private string filePath;
     
-    // ← NEW: Extracted default initialization for better maintainability
     private List<User> GetDefaultUsers()
     {
         return new List<User>
@@ -27,8 +25,8 @@ public class UserService : IUserService
             new User { Id = 2, Name = "Tamer Rotan", Age = 21, Gender = "female", Password = "password2"},
             new User { Id = 4, Name = "Yahakov Cohen", Age = 13, Gender = "male", Password = "password3"},
             new User { Id = 3, Name = "Beni Levi", Age = 23, Gender = "male", Password = "password4"},
-            new User { Id = 5, Name = "admin", Age = 25, Gender = "male", Password = "admin"},  // ← NEW: Admin user
-            new User { Id = 6, Name = "user", Age = 22, Gender = "female", Password = "user"}  // ← NEW: Regular user for testing
+            new User { Id = 5, Name = "admin", Age = 25, Gender = "male", Password = "admin"},  // משתמש אדמין
+            new User { Id = 6, Name = "user", Age = 22, Gender = "female", Password = "user"}  // משתמש רגיל לבדיקה
         };
     }
 
@@ -36,10 +34,8 @@ public class UserService : IUserService
     {
         this.filePath = Path.Combine(webHost.ContentRootPath, "Data", "User.json");
         
-        // ← NEW: Always start with defaults
         Users = GetDefaultUsers();
         
-        // ← NEW: If file exists and has data, load it and ensure admin user exists
         if (File.Exists(filePath))
         {
             try
@@ -58,7 +54,7 @@ public class UserService : IUserService
                         if (loadedUsers != null && loadedUsers.Count > 0)
                         {
                             Users = loadedUsers;
-                            // ← NEW: Ensure required admin users exist even if file is old
+                            // אם הקובץ ישן והאדמין/המשתמש לא נמצאים – נוסיף
                             var defaultUsers = GetDefaultUsers();
                             foreach (var defaultUser in defaultUsers.Where(u => u.Name == "admin" || u.Name == "user"))
                             {
@@ -73,12 +69,10 @@ public class UserService : IUserService
             }
             catch
             {
-                // ← NEW: Better error handling - fallback to defaults
                 Users = GetDefaultUsers();
             }
         }
         
-        // ← NEW: Ensure data is persisted
         saveToFile();
     }
 
@@ -94,10 +88,7 @@ public class UserService : IUserService
         return Users;
     }
 
-    public User? find(int id)
-    {
-        return Users.FirstOrDefault(p => p.Id == id);
-    }
+    public User? find(int id) => Users.FirstOrDefault(p => p.Id == id);
 
     public User? Get(int id) => find(id);
 
