@@ -7,70 +7,67 @@ namespace myProject.Services
 {
     public class TenBisService : ITenBisService
     {
-        private readonly ITenBisRepository _repository;
-        private readonly IActiveUser _activeUser;
+        private List<TenBIs> list;
 
-        public TenBisService(ITenBisRepository repository, IActiveUser activeUser)
+        public TenBisService()
         {
-            _repository = repository;
-            _activeUser = activeUser;
+            list = new List<TenBIs>
+            {
+                new TenBIs { Id = 1, Name = "Belgian waffle", IsMilky = true, UserId = 1 },
+                new TenBIs { Id = 2, Name = "toast", IsMilky = true, UserId = 1 },
+                new TenBIs { Id = 3, Name = "Shakshuka", IsMilky = false, UserId = 2 },
+                new TenBIs { Id = 4, Name = "Hummus with Bread", IsMilky = false, UserId = 5 },
+                new TenBIs { Id = 5, Name = "Falafel Plate", IsMilky = false, UserId = 6 }
+            };
         }
 
-        private int GetActiveUserId()
+        public List<TenBIs> Get()
         {
-            return _activeUser?.ActiveUser?.Id 
-                ?? throw new System.UnauthorizedAccessException("חובה להיות מחובר למערכת!");
+            return list;
         }
 
-        public List<TenBIs> GetAll()
+        public TenBIs? Find(int id)
         {
-            var activeUserId = GetActiveUserId();
-            return _repository.Get()
-                .Where(t => t.UserId == activeUserId)
-                .ToList();
+            return list.FirstOrDefault(p => p.Id == id);
         }
 
-        public TenBIs? GetById(int id)
+        public TenBIs Get(int id) => Find(id);
+
+        public TenBIs Create(TenBIs newTenBIs)
         {
-            var activeUserId = GetActiveUserId();
-            var item = _repository.Find(id);
-            
-            if (item != null && item.UserId == activeUserId)
-                return item;
-            
-            return null;
+            var maxId = list.Max(p => p.Id);
+            newTenBIs.Id = maxId + 1;
+            list.Add(newTenBIs);
+            return newTenBIs;
         }
 
-        public void Add(TenBIs item)
+        public bool Update(int id, TenBIs newTenBIs)
         {
-            var activeUserId = GetActiveUserId();
-            item.UserId = activeUserId;
-            _repository.Create(item);
-        }
-
-        public bool Update(TenBIs item)
-        {
-            var activeUserId = GetActiveUserId();
-            var existing = _repository.Find(item.Id);
-            
-            if (existing == null || existing.UserId != activeUserId)
+            var tenBis = Find(id);
+            if (tenBis == null)
+                return false;
+            if (tenBis.Id != newTenBIs.Id)
                 return false;
 
-            item.UserId = activeUserId;
-            return _repository.Update(item.Id, item);
+            var index = list.IndexOf(tenBis);
+            list[index] = newTenBIs;
+
+            return true;
         }
 
         public bool Delete(int id)
         {
-            var activeUserId = GetActiveUserId();
-            var item = _repository.Find(id);
-            
-            if (item == null || item.UserId != activeUserId)
+            var tenBis = Find(id);
+            if (tenBis == null)
                 return false;
-
-            return _repository.Delete(id);
+            list.Remove(tenBis);
+            return true;
+        }
+        
+        // delete all tenbis for given user id
+        public void DeleteByUserId(int userId)
+        {
+            list.RemoveAll(t => t.UserId == userId);
         }
     }
-
-    
 }

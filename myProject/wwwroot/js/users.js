@@ -2,6 +2,17 @@
 const uri = '/api/User';
 let users = [];
 
+function parseToken() {
+    const token = localStorage.getItem('token');
+    if (!token) return null;
+    try {
+        const payload = JSON.parse(atob(token.split('.')[1]));
+        return payload;
+    } catch (e) {
+        return null;
+    }
+}
+
 function getHeaders() {
     const headers = {
         'Accept': 'application/json',
@@ -15,7 +26,14 @@ function getHeaders() {
 }
 
 function getItems() {
-    fetch(uri, {
+    const payload = parseToken();
+    let fetchUri = uri;
+    if (payload && payload.usertype && payload.usertype !== 'Admin') {
+        // non-admin users only fetch their own record
+        fetchUri = uri + '/me';
+    }
+
+    fetch(fetchUri, {
         headers: getHeaders()
     })
         .then(response => {
@@ -158,21 +176,38 @@ function displayItems(data) {
 
     const button = document.createElement('button');
 
+    // prepare authorization context
+    const payload = parseToken();
+    const currentUserId = payload && payload.userid ? parseInt(payload.userid) : null;
+    const isAdmin = payload && payload.usertype && payload.usertype === 'Admin';
+
+    // hide add form for non-admins
+    const addForm = document.getElementById('addUserForm');
+    if (addForm) {
+        addForm.style.display = isAdmin ? 'block' : 'none';
+    }
+
     data.forEach(user => {
-
-        console.log(user + "----");
-
-
         let editButton = button.cloneNode(false);
         editButton.innerText = 'Edit';
-        editButton.setAttribute('onclick', `displayEditForm(${user.id})`);
+        // allow edit for admins or for current user only
+        if (isAdmin || (currentUserId !== null && user.id === currentUserId)) {
+            editButton.setAttribute('onclick', `displayEditForm(${user.id})`);
+        } else {
+            editButton.disabled = true;
+            editButton.style.opacity = '0.5';
+        }
 
         let deleteButton = button.cloneNode(false);
         deleteButton.innerText = 'Delete';
-        deleteButton.setAttribute('onclick', `deleteItem(${user.id})`);
+        if (isAdmin) {
+            deleteButton.setAttribute('onclick', `deleteItem(${user.id})`);
+        } else {
+            deleteButton.disabled = true;
+            deleteButton.style.opacity = '0.5';
+        }
 
         let tr = tBody.insertRow();
-
 
         let td1 = tr.insertCell(0);
         let textNode = document.createTextNode(user.id);
@@ -194,6 +229,5 @@ function displayItems(data) {
         td5.appendChild(editButton);
         td5.appendChild(deleteButton);
     });
-
     users = data;
 }

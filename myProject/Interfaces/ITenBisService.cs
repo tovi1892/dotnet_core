@@ -6,10 +6,14 @@ namespace myProject.Interfaces
 {
     public interface ITenBisService
     {
-        List<TenBIs> GetAll();     
-        TenBIs? GetById(int id);  
-        void Add(TenBIs item);    
-        bool Update(TenBIs item); 
-        bool Delete(int id);     
+        bool Delete(int id);
+        // Delete all tenbis that belong to a specific user
+        void DeleteByUserId(int userId);
+        bool Update(int id, TenBIs newTenBIs);
+        TenBIs Create(TenBIs newTenBIs);
+TenBIs? Find(int id);
+        List<TenBIs> Get();
+        TenBIs Get(int id);
+
     }
 }

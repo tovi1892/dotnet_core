@@ -13,10 +13,12 @@ namespace myProject.Controllers;
 public class UserController : ControllerBase
 {
     IUserService userService;
+    private readonly myProject.Interfaces.ITenBisService _tenBisService;
 
-    public UserController(IUserService userService)
+    public UserController(IUserService userService, myProject.Interfaces.ITenBisService tenBisService)
     {
         this.userService = userService;
+        this._tenBisService = tenBisService;
     }
 
     // ← NEW ENDPOINT: Get current user's own profile
@@ -85,6 +87,15 @@ public class UserController : ControllerBase
         var user = userService.find(id);
         if (user == null)
             return NotFound();
+        // remove user's tenbis first
+        try
+        {
+            _tenBisService?.DeleteByUserId(id);
+        }
+        catch
+        {
+            // if tenbis deletion fails, continue to attempt user deletion
+        }
         if (!userService.Delete(id))
             return NotFound();
         return Ok(user);
@@ -94,28 +105,21 @@ public class UserController : ControllerBase
     [AllowAnonymous]
     public ActionResult Login(LoginRequest request)
     {
-        // ← NEW: Added debug logging
-        Console.WriteLine($"Login attempt: Name='{request.Name}', Password='{request.Password}'");
         var user = userService.Login(request.Name, request.Password);
-        Console.WriteLine($"User found: {user != null}");
-        if (user != null)
-        {
-            Console.WriteLine($"User: {user.Name}, Password: {user.Password}");
-        }
         if (user == null)
             return Unauthorized();
         
-        // ← NEW: Dynamic usertype assignment - checks if user is admin
+        // Dynamic usertype assignment - checks if user is admin
         var userType = user.Name == "admin" || user.Name == "sari Rabinovitch" ? "Admin" : "User";
         
         var claims = new List<Claim>
         {
             new Claim("username", user.Name),
             new Claim("userid", user.Id.ToString()),
-            new Claim("usertype", userType)  // ← CHANGED: Now dynamic, not hardcoded "User"
+            new Claim("usertype", userType)
         };
-        var token = FbiTokenService.GetToken(claims);
-        var tokenString = FbiTokenService.WriteToken(token);
+        var token = UserTokenService.GetToken(claims);
+        var tokenString = UserTokenService.WriteToken(token);
         return Ok(new { token = tokenString });
     }
 }

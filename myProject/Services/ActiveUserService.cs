@@ -1,25 +1,38 @@
 using myProject.Interfaces;
 using myProject.Models;
 using Microsoft.AspNetCore.Http;
-using System.Linq;
-using System.Security.Claims;
+using Microsoft.Extensions.DependencyInjection;
+
 
 namespace myProject.Services
 {
     public class ActiveUserService : IActiveUser
     {
-        public User? ActiveUser { get; private set; }
-
-        public ActiveUserService(IHttpContextAccessor context, IUserService userService)
+        public User ActiveUser { get; private set; }
+        public ActiveUserService(IHttpContextAccessor context)
         {
-            // שליפת ה-Username מ-Claims של ה-JWT Token
-            var usernameClaim = context?.HttpContext?.User?.FindFirst("username")?.Value;
-            
-            if (!string.IsNullOrEmpty(usernameClaim))
+            var userId = context?.HttpContext?.User?.FindFirst("userid");
+            if (userId != null)
             {
-                // חיפוש המשתמש לפי השם מ-Claims
-                ActiveUser = userService.Get().FirstOrDefault(u => u.Name == usernameClaim);
+                ActiveUser = new User
+                {
+                    Id = int.Parse(userId.Value),
+                    Name = "test",
+                    Password = "test",
+                    Gender = "test"
+                    
+                };
             }
+        }
+
+    }
+
+    public static class KsPizzaExtensions
+    {
+        public static IServiceCollection UseActiveUser(this IServiceCollection services)
+        {
+            services.AddScoped<IActiveUser, ActiveUserService>();
+            return services;
         }
     }
 }

@@ -14,14 +14,14 @@ builder.Services.AddControllers();
 builder.Services.addUserService(); 
 
 // רישום ה-Repository (המחסן של הנתונים הגולמיים) - חייב להיות Singleton
-builder.Services.AddSingleton<ITenBisRepository, TenBisRepository>();
+// builder.Services.AddSingleton<ITenBisRepository, TenBisRepository>();
 
 // רישום ה-ActiveUserService (הזיהוי של המשתמש המחובר) - Scoped
 builder.Services.AddHttpContextAccessor(); // חובה כדי שה-ActiveUser יוכל לגשת ל-Token
-builder.Services.AddScoped<IActiveUser, ActiveUserService>();
+// builder.Services.AddScoped<IActiveUser, ActiveUserService>();
 
 // רישום ה-TenBisService (הלוגיקה והאבטחה) - Scoped
-builder.Services.AddScoped<ITenBisService, TenBisService>();
+builder.Services.AddSingleton<ITenBisService, TenBisService>();
 
 // Add authentication
 builder.Services
@@ -32,7 +32,7 @@ builder.Services
     .AddJwtBearer(cfg =>
     {
         cfg.RequireHttpsMetadata = false;
-        cfg.TokenValidationParameters = FbiTokenService.GetTokenValidationParameters();
+        cfg.TokenValidationParameters = UserTokenService.GetTokenValidationParameters();
     });
 
 builder.Services.AddAuthorization(cfg =>
@@ -67,6 +67,8 @@ builder.Services.AddSwaggerGen(c =>
             }
     });
 });
+
+builder.Services.UseActiveUser();
 
 var app = builder.Build();
 // app.UseMyLogMiddleware();
