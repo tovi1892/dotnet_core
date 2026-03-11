@@ -8,7 +8,7 @@ namespace myProject.Services
 {
     public class ActiveUserService : IActiveUser
     {
-        public User ActiveUser { get; private set; }
+        public User? ActiveUser { get; private set; }
         public ActiveUserService(IHttpContextAccessor context)
         {
             var userId = context?.HttpContext?.User?.FindFirst("userid");

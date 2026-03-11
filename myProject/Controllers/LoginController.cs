@@ -16,12 +16,15 @@ public class LoginController : ControllerBase
     [HttpPost]
     public ActionResult Login(LoginRequest request)
     {
+        Console.WriteLine($"Login attempt: Name='{request.Name}', Password='{request.Password}'");
         var dt = DateTime.Now;
 
-        if (request.Name != "test" || request.Password != $"t{dt.Year}#{dt.Day}!")
+        if (request.Name != "test" || request.Password != $"t{dt.Year}#{dt.Day}!" )
         {
+            Console.WriteLine("User found: False");
             return Unauthorized();
         }
+        Console.WriteLine("User found: True");
 
         // create claims similar to other login implementations
         var claims = new List<Claim>

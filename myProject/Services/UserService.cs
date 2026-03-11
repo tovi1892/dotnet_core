@@ -25,8 +25,8 @@ public class UserService : IUserService
             new User { Id = 2, Name = "Tamer Rotan", Age = 21, Gender = "female", Password = "password2"},
             new User { Id = 4, Name = "Yahakov Cohen", Age = 13, Gender = "male", Password = "password3"},
             new User { Id = 3, Name = "Beni Levi", Age = 23, Gender = "male", Password = "password4"},
-            new User { Id = 5, Name = "admin", Age = 25, Gender = "male", Password = "admin"},  // משתמש אדמין
-            new User { Id = 6, Name = "user", Age = 22, Gender = "female", Password = "user"}  // משתמש רגיל לבדיקה
+            new User { Id = 5, Name = "admin", Age = 25, Gender = "male", Password = "admin"},  
+            new User { Id = 6, Name = "user", Age = 22, Gender = "female", Password = "user"}  
         };
     }
 
@@ -88,9 +88,9 @@ public class UserService : IUserService
         return Users;
     }
 
-    public User? find(int id) => Users.FirstOrDefault(p => p.Id == id);
+    public User find(int id) => Users.FirstOrDefault(p => p.Id == id)!;
 
-    public User? Get(int id) => find(id);
+    public User Get(int id) => find(id);
 
     public User Create(User newUser)
     {
@@ -127,9 +127,9 @@ public class UserService : IUserService
         return true;
     }
 
-    public User? Login(string name, string password)
+    public User Login(string name, string password)
     {
-        return Users.FirstOrDefault(u => u.Name == name && u.Password == password);
+        return Users.FirstOrDefault(u => u.Name == name && u.Password == password)!;
     }
 }
 

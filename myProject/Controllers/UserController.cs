@@ -105,7 +105,13 @@ public class UserController : ControllerBase
     [AllowAnonymous]
     public ActionResult Login(LoginRequest request)
     {
+        Console.WriteLine($"Login attempt: Name='{request.Name}', Password='{request.Password}'");
         var user = userService.Login(request.Name, request.Password);
+        Console.WriteLine($"User found: {user != null}");
+        if (user != null)
+        {
+            Console.WriteLine($"User: {user.Name}, Password: {user.Password}");
+        }
         if (user == null)
             return Unauthorized();
         

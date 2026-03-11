@@ -31,7 +31,7 @@ namespace myProject.Services
             return list.FirstOrDefault(p => p.Id == id);
         }
 
-        public TenBIs Get(int id) => Find(id);
+        public TenBIs Get(int id) => Find(id)!;
 
         public TenBIs Create(TenBIs newTenBIs)
         {

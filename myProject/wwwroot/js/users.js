@@ -172,7 +172,10 @@ function displayItems(data) {
     const tBody = document.getElementById('user');
     tBody.innerHTML = '';
 
-    displayCount(data.length);
+    // normalize data to array (when /me endpoint returns single object)
+    const rows = Array.isArray(data) ? data : [data];
+
+    displayCount(rows.length);
 
     const button = document.createElement('button');
 
@@ -187,7 +190,7 @@ function displayItems(data) {
         addForm.style.display = isAdmin ? 'block' : 'none';
     }
 
-    data.forEach(user => {
+    rows.forEach(user => {
         let editButton = button.cloneNode(false);
         editButton.innerText = 'Edit';
         // allow edit for admins or for current user only
@@ -229,5 +232,5 @@ function displayItems(data) {
         td5.appendChild(editButton);
         td5.appendChild(deleteButton);
     });
-    users = data;
+    users = rows;
 }

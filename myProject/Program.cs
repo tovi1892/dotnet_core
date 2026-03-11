@@ -8,20 +8,10 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 
 builder.Services.AddControllers();
-// builder.Services.AddTenBis();
-// builder.Services.addUserService();
-// רישום ה-UserService (ניהול קובץ המשתמשים)
-builder.Services.addUserService(); 
+builder.Services.addUserService();
+builder.Services.AddSingleton<ITenBisService, TenBisService>(); 
 
-// רישום ה-Repository (המחסן של הנתונים הגולמיים) - חייב להיות Singleton
-// builder.Services.AddSingleton<ITenBisRepository, TenBisRepository>();
 
-// רישום ה-ActiveUserService (הזיהוי של המשתמש המחובר) - Scoped
-builder.Services.AddHttpContextAccessor(); // חובה כדי שה-ActiveUser יוכל לגשת ל-Token
-// builder.Services.AddScoped<IActiveUser, ActiveUserService>();
-
-// רישום ה-TenBisService (הלוגיקה והאבטחה) - Scoped
-builder.Services.AddSingleton<ITenBisService, TenBisService>();
 
 // Add authentication
 builder.Services
@@ -46,6 +36,7 @@ builder.Services.AddAuthorization(cfg =>
         // );
         cfg.AddPolicy("ClearanceLevel2", policy => policy.RequireClaim("ClearanceLevel", "2"));
     });
+builder.Services.AddHttpContextAccessor(); // חובה כדי שה-ActiveUser יוכל לגשת ל-Token
 
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddSwaggerGen(c =>
