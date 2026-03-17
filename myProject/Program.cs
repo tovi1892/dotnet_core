@@ -3,15 +3,15 @@ using myProject;
 using myProject.Services;
 using Microsoft.OpenApi.Models;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 
 builder.Services.AddControllers();
-builder.Services.addUserService();
-builder.Services.AddSingleton<ITenBisService, TenBisService>(); 
 
-
+// register all project services (tenbis, user, active-user, SignalR)
+builder.Services.AddProjectServices();
 
 // Add authentication
 builder.Services
@@ -23,6 +23,22 @@ builder.Services
     {
         cfg.RequireHttpsMetadata = false;
         cfg.TokenValidationParameters = UserTokenService.GetTokenValidationParameters();
+
+        // allow SignalR websocket connections to send access_token as query string
+        cfg.Events = new Microsoft.AspNetCore.Authentication.JwtBearer.JwtBearerEvents
+        {
+            OnMessageReceived = context =>
+            {
+                var accessToken = context.Request.Query["access_token"].ToString();
+                var path = context.HttpContext?.Request?.Path;
+                var pathValue = path.HasValue ? path.Value.ToString() : string.Empty;
+                if (!string.IsNullOrEmpty(accessToken) && !string.IsNullOrEmpty(pathValue) && pathValue.StartsWith("/activityHub", System.StringComparison.OrdinalIgnoreCase))
+                {
+                    context.Token = accessToken;
+                }
+                return System.Threading.Tasks.Task.CompletedTask;
+            }
+        };
     });
 
 builder.Services.AddAuthorization(cfg =>
@@ -36,7 +52,7 @@ builder.Services.AddAuthorization(cfg =>
         // );
         cfg.AddPolicy("ClearanceLevel2", policy => policy.RequireClaim("ClearanceLevel", "2"));
     });
-builder.Services.AddHttpContextAccessor(); // חובה כדי שה-ActiveUser יוכל לגשת ל-Token
+builder.Services.AddHttpContextAccessor();
 
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddSwaggerGen(c =>
@@ -59,11 +75,10 @@ builder.Services.AddSwaggerGen(c =>
     });
 });
 
-builder.Services.UseActiveUser();
+builder.Services.AddSingleton<LogQueue>();
 
+builder.Services.AddHostedService<LogBackgroundWorker>();
 var app = builder.Build();
-// app.UseMyLogMiddleware();
-// Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
@@ -72,7 +87,6 @@ if (app.Environment.IsDevelopment())
         options.SwaggerEndpoint("/swagger/v1/swagger.json", "v1");
     });
 }
-// ← CHANGED: Set login.html as default file and enable directory browsing  
 app.UseDefaultFiles(new DefaultFilesOptions
 {
     DefaultFileNames = new List<string> { "login.html" }
@@ -85,5 +99,7 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
+
+app.MapHub<myProject.Hubs.ActivityHub>("/activityHub");
 
 app.Run();

@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.Authorization;
 namespace myProject.Controllers;
 
 [ApiController]
-[Route("api/[controller]")]  // ← CHANGED: Add /api prefix
+[Route("api/[controller]")]  
 [Authorize]
 public class UserController : ControllerBase
 {
@@ -21,7 +21,6 @@ public class UserController : ControllerBase
         this._tenBisService = tenBisService;
     }
 
-    // ← NEW ENDPOINT: Get current user's own profile
     [HttpGet("me")]
     public ActionResult<User> GetMe()
     {
@@ -33,7 +32,7 @@ public class UserController : ControllerBase
     }
 
     [HttpGet()]
-    [Authorize(Policy = "Admin")]  // ← NEW: Only Admins can list all users
+    [Authorize(Policy = "Admin")]  
     public ActionResult<IEnumerable<User>> Get()
     {
         return userService.Get();
@@ -45,7 +44,7 @@ public class UserController : ControllerBase
         var currentUserId = int.Parse(User.FindFirst("userid")?.Value ?? "0");
         var isAdmin = User.FindFirst("usertype")?.Value == "Admin";
         if (!isAdmin && currentUserId != id)
-            return Forbid();  // משתמש רגיל יכול לגשת רק לפרופיל שלו
+            return Forbid();
 
         var user = userService.Get(id);
         if (user == null)
@@ -54,7 +53,7 @@ public class UserController : ControllerBase
     }
 
     [HttpPost]
-    [Authorize(Policy = "Admin")]  // ← NEW: Only Admins can create users
+    [Authorize(Policy = "Admin")]  
     public ActionResult Create(User newUser)
     {
         var postedUser = userService.Create(newUser);
@@ -64,7 +63,7 @@ public class UserController : ControllerBase
     [HttpPut("{id}")]
     public ActionResult Update(int id, User newUser)
     {
-        // ← NEW: Users can update themselves, Admins can update anyone
+       
         var currentUserId = int.Parse(User.FindFirst("userid")?.Value ?? "0");
         var isAdmin = User.FindFirst("usertype")?.Value == "Admin";
         
@@ -81,13 +80,13 @@ public class UserController : ControllerBase
     }
 
     [HttpDelete("{id}")]
-    [Authorize(Policy = "Admin")]  // ← NEW: Only Admins can delete users
+    [Authorize(Policy = "Admin")] 
     public ActionResult Delete(int id)
     {
         var user = userService.find(id);
         if (user == null)
             return NotFound();
-        // remove user's tenbis first
+
         try
         {
             _tenBisService?.DeleteByUserId(id);
@@ -113,9 +112,9 @@ public class UserController : ControllerBase
             Console.WriteLine($"User: {user.Name}, Password: {user.Password}");
         }
         if (user == null)
-            return Unauthorized();
+            return Unauthorized();        
         
-        // Dynamic usertype assignment - checks if user is admin
+       
         var userType = user.Name == "admin" || user.Name == "sari Rabinovitch" ? "Admin" : "User";
         
         var claims = new List<Claim>

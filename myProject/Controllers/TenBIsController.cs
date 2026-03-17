@@ -4,6 +4,7 @@ using System.Linq;
 using myProject.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using System.Security.Claims;
+using myProject.Services;
 
 namespace myProject.Controllers
 {
@@ -12,10 +13,13 @@ namespace myProject.Controllers
     [Authorize]
     public class TenBIsController : ControllerBase
     {
-        private readonly ITenBisService _tenBisService; 
-        public TenBIsController(ITenBisService tenBisService)
+        private readonly ITenBisService _tenBisService;
+        private readonly IActivityRepository _activityRepository;
+
+        public TenBIsController(ITenBisService tenBisService, IActivityRepository activityRepository)
         {
-            _tenBisService = tenBisService; 
+            _tenBisService = tenBisService;
+            _activityRepository = activityRepository;
         }
 
         private int GetUserId()
@@ -48,15 +52,17 @@ namespace myProject.Controllers
         }
 
         [HttpPost]
-        public ActionResult Create(TenBIs newTenBIs)
+        public async System.Threading.Tasks.Task<ActionResult> Create(TenBIs newTenBIs)
         {
             newTenBIs.UserId = GetUserId();
-            var postedTenBIs = _tenBisService.Create(newTenBIs); 
+            var postedTenBIs = _tenBisService.Create(newTenBIs);
+            var username = User.FindFirst("username")?.Value ?? "system";
+            await _activityRepository.BroadcastAsync(username, "created", postedTenBIs.Name);
             return CreatedAtAction(nameof(Get), new { id = postedTenBIs.Id }, postedTenBIs);
         }
 
         [HttpPut("{id}")]
-        public ActionResult Update(int id, TenBIs newTenBIs)
+        public async System.Threading.Tasks.Task<ActionResult> Update(int id, TenBIs newTenBIs)
         {
             var userId = GetUserId();
             var tenBis = _tenBisService.Find(id);
@@ -66,11 +72,13 @@ namespace myProject.Controllers
             newTenBIs.UserId = userId;
             if (!_tenBisService.Update(id, newTenBIs))
                 return BadRequest();
+            var username = User.FindFirst("username")?.Value ?? "system";
+            await _activityRepository.BroadcastAsync(username, "updated", newTenBIs.Name);
             return Ok(newTenBIs);
         }
 
         [HttpDelete("{id}")]
-        public ActionResult Delete(int id)
+        public async System.Threading.Tasks.Task<ActionResult> Delete(int id)
         {
             var userId = GetUserId();
             var tenBis = _tenBisService.Find(id);
@@ -78,6 +86,8 @@ namespace myProject.Controllers
                 return NotFound();
             if (!_tenBisService.Delete(id))
                 return NotFound();
+            var username = User.FindFirst("username")?.Value ?? "system";
+            await _activityRepository.BroadcastAsync(username, "deleted", tenBis.Name);
             return Ok(tenBis);
         }
     }

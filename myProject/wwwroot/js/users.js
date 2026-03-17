@@ -1,4 +1,4 @@
-// ← CHANGED: Update endpoint URL to include /api prefix
+
 const uri = '/api/User';
 let users = [];
 
@@ -29,7 +29,6 @@ function getItems() {
     const payload = parseToken();
     let fetchUri = uri;
     if (payload && payload.usertype && payload.usertype !== 'Admin') {
-        // non-admin users only fetch their own record
         fetchUri = uri + '/me';
     }
 
@@ -61,7 +60,7 @@ function addItem() {
         name: addNameTextbox.value.trim(),
         age: parseInt(addAge.value),
         gender: addGender.value,
-        password: addPassword.value  // ← NEW: Send password in request
+        password: addPassword.value  
     };
 
 
