@@ -1,7 +1,5 @@
 using myProject.Interfaces;
-using myProject.Models;
-using System.Collections.Generic;
-using System.Linq;
+
 using System.Text.Json;
 
 namespace myProject.Services
@@ -53,12 +51,10 @@ namespace myProject.Services
                 }
                 catch
                 {
-                    // אם יש שגיאה בטעינה, נשתמש בברירות המחדל
                     list = GetDefaultTenBis();
                 }
             }
 
-            // תמיד שמור את הנתונים כך שיהיו מעודכנים
             saveToFile();
         }
 

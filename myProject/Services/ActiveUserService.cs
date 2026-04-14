@@ -1,8 +1,5 @@
 using myProject.Interfaces;
 using myProject.Models;
-using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.DependencyInjection;
-
 
 namespace myProject.Services
 {

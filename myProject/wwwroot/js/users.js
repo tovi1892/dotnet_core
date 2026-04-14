@@ -85,7 +85,7 @@ function addItem() {
             addNameTextbox.value = '';
             addAge.value = '';
             addGender.value = '';
-            addPassword.value = '';  // ← NEW: Clear password field
+            addPassword.value = '';  
         })
         .catch(error => console.error('Unable to add user.', error));
 }
@@ -117,7 +117,6 @@ function displayEditForm(id) {
     document.getElementById('edit-name').value = user.name;
     document.getElementById('edit-age').value = user.age;
     document.getElementById('edit-gender').value = user.gender;
-    // Note: Password is not populated for security reasons
     document.getElementById('editForm').style.display = 'block';
 }
 

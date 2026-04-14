@@ -1,5 +1,4 @@
 using Microsoft.AspNetCore.Mvc;
-using System.Collections.Generic;
 using myProject.Interfaces;
 using System.Security.Claims;
 using myProject.Services;
@@ -8,14 +7,14 @@ using Microsoft.AspNetCore.Authorization;
 namespace myProject.Controllers;
 
 [ApiController]
-[Route("api/[controller]")]  
+[Route("api/[controller]")]
 [Authorize]
 public class UserController : ControllerBase
 {
     IUserService userService;
-    private readonly myProject.Interfaces.ITenBisService _tenBisService;
+    private readonly ITenBisService _tenBisService;
 
-    public UserController(IUserService userService, myProject.Interfaces.ITenBisService tenBisService)
+    public UserController(IUserService userService, ITenBisService tenBisService)
     {
         this.userService = userService;
         this._tenBisService = tenBisService;
@@ -32,7 +31,7 @@ public class UserController : ControllerBase
     }
 
     [HttpGet()]
-    [Authorize(Policy = "Admin")]  
+    [Authorize(Policy = "Admin")]
     public ActionResult<IEnumerable<User>> Get()
     {
         return userService.Get();
@@ -53,7 +52,7 @@ public class UserController : ControllerBase
     }
 
     [HttpPost]
-    [Authorize(Policy = "Admin")]  
+    [Authorize(Policy = "Admin")]
     public ActionResult Create(User newUser)
     {
         var postedUser = userService.Create(newUser);
@@ -63,10 +62,10 @@ public class UserController : ControllerBase
     [HttpPut("{id}")]
     public ActionResult Update(int id, User newUser)
     {
-       
+
         var currentUserId = int.Parse(User.FindFirst("userid")?.Value ?? "0");
         var isAdmin = User.FindFirst("usertype")?.Value == "Admin";
-        
+
         if (currentUserId != id && !isAdmin)
             return Forbid();
 
@@ -80,7 +79,7 @@ public class UserController : ControllerBase
     }
 
     [HttpDelete("{id}")]
-    [Authorize(Policy = "Admin")] 
+    [Authorize(Policy = "Admin")]
     public ActionResult Delete(int id)
     {
         var user = userService.find(id);
@@ -93,7 +92,7 @@ public class UserController : ControllerBase
         }
         catch
         {
-            // if tenbis deletion fails, continue to attempt user deletion
+            throw new Exception("Failed to delete user's TenBis entries");
         }
         if (!userService.Delete(id))
             return NotFound();
@@ -112,11 +111,11 @@ public class UserController : ControllerBase
             Console.WriteLine($"User: {user.Name}, Password: {user.Password}");
         }
         if (user == null)
-            return Unauthorized();        
-        
-       
+            return Unauthorized();
+
+
         var userType = user.Name == "admin" || user.Name == "sari Rabinovitch" ? "Admin" : "User";
-        
+
         var claims = new List<Claim>
         {
             new Claim("username", user.Name),

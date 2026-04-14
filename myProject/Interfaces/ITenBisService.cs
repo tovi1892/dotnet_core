@@ -1,6 +1,5 @@
 
-using System.Collections.Generic;
-using myProject.Models;
+
 
 namespace myProject.Interfaces
 {

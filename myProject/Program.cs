@@ -1,19 +1,19 @@
-using myProject.Interfaces;
 using myProject;
 using myProject.Services;
 using Microsoft.OpenApi.Models;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
+builder.Host.UseSerilog((context, config) => config.ReadFrom.Configuration(context.Configuration));
+
+
 
 builder.Services.AddControllers();
 
-// register all project services (tenbis, user, active-user, SignalR)
 builder.Services.AddProjectServices();
 
-// Add authentication
 builder.Services
     .AddAuthentication(options =>
     {
@@ -24,8 +24,7 @@ builder.Services
         cfg.RequireHttpsMetadata = false;
         cfg.TokenValidationParameters = UserTokenService.GetTokenValidationParameters();
 
-        // allow SignalR websocket connections to send access_token as query string
-        cfg.Events = new Microsoft.AspNetCore.Authentication.JwtBearer.JwtBearerEvents
+        cfg.Events = new JwtBearerEvents
         {
             OnMessageReceived = context =>
             {
@@ -36,7 +35,7 @@ builder.Services
                 {
                     context.Token = accessToken;
                 }
-                return System.Threading.Tasks.Task.CompletedTask;
+                return Task.CompletedTask;
             }
         };
     });
@@ -54,7 +53,6 @@ builder.Services.AddAuthorization(cfg =>
     });
 builder.Services.AddHttpContextAccessor();
 
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddSwaggerGen(c =>
 {
     c.SwaggerDoc("v1", new OpenApiInfo { Title = "myProject", Version = "v1" });
@@ -75,9 +73,6 @@ builder.Services.AddSwaggerGen(c =>
     });
 });
 
-builder.Services.AddSingleton<LogQueue>();
-
-builder.Services.AddHostedService<LogBackgroundWorker>();
 var app = builder.Build();
 if (app.Environment.IsDevelopment())
 {
@@ -101,5 +96,5 @@ app.UseAuthorization();
 app.MapControllers();
 
 app.MapHub<myProject.Hubs.ActivityHub>("/activityHub");
-
+Log.Information("The application is starting up...");
 app.Run();

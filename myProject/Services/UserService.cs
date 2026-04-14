@@ -2,13 +2,8 @@ using Microsoft.AspNetCore.Mvc;
 using System;
 using myProject.Interfaces;
 using myProject.Models;
-using System.Security.Cryptography.X509Certificates;
-using Microsoft.Extensions.DependencyInjection;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
 using System.Text.Json;
-using Microsoft.AspNetCore.Hosting;
+
 
 namespace myProject.Services;
 
@@ -16,7 +11,7 @@ public class UserService : IUserService
 {
     private List<User> Users;
     private string filePath;
-    
+
     private List<User> GetDefaultUsers()
     {
         return new List<User>
@@ -25,17 +20,17 @@ public class UserService : IUserService
             new User { Id = 2, Name = "Tamer Rotan", Age = 21, Gender = "female", Password = "password2"},
             new User { Id = 4, Name = "Yahakov Cohen", Age = 13, Gender = "male", Password = "password3"},
             new User { Id = 3, Name = "Beni Levi", Age = 23, Gender = "male", Password = "password4"},
-            new User { Id = 5, Name = "admin", Age = 25, Gender = "male", Password = "admin"},  
-            new User { Id = 6, Name = "user", Age = 22, Gender = "female", Password = "user"}  
+            new User { Id = 5, Name = "admin", Age = 25, Gender = "male", Password = "admin"},
+            new User { Id = 6, Name = "user", Age = 22, Gender = "female", Password = "user"}
         };
     }
 
     public UserService(IWebHostEnvironment webHost)
     {
         this.filePath = Path.Combine(webHost.ContentRootPath, "Data", "User.json");
-        
+
         Users = GetDefaultUsers();
-        
+
         if (File.Exists(filePath))
         {
             try
@@ -50,7 +45,7 @@ public class UserService : IUserService
                         {
                             PropertyNameCaseInsensitive = true
                         });
-                        
+
                         if (loadedUsers != null && loadedUsers.Count > 0)
                         {
                             Users = loadedUsers;
@@ -72,7 +67,7 @@ public class UserService : IUserService
                 Users = GetDefaultUsers();
             }
         }
-        
+
         saveToFile();
     }
 

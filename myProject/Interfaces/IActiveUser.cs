@@ -1,5 +1,4 @@
 using myProject.Models;
-using Microsoft.AspNetCore.Http;
 
 namespace myProject.Interfaces
 {

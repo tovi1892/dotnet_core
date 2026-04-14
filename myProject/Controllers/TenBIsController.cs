@@ -1,9 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
-using System.Collections.Generic;
-using System.Linq;
 using myProject.Interfaces;
 using Microsoft.AspNetCore.Authorization;
-using System.Security.Claims;
 using myProject.Services;
 
 namespace myProject.Controllers
@@ -31,28 +28,28 @@ namespace myProject.Controllers
         public ActionResult<IEnumerable<TenBIs>> Get()
         {
             var userId = GetUserId();
-            return _tenBisService.Get().Where(x => x.UserId == userId).ToList(); 
+            return _tenBisService.Get().Where(x => x.UserId == userId).ToList();
         }
 
         [HttpGet("me")]
         public ActionResult<IEnumerable<TenBIs>> GetMe()
         {
             var userId = GetUserId();
-            return _tenBisService.Get().Where(x => x.UserId == userId).ToList(); 
+            return _tenBisService.Get().Where(x => x.UserId == userId).ToList();
         }
 
         [HttpGet("{id}")]
         public ActionResult<TenBIs> Get(int id)
         {
             var userId = GetUserId();
-            var tenBis = _tenBisService.Get(id); 
+            var tenBis = _tenBisService.Get(id);
             if (tenBis == null || tenBis.UserId != userId)
                 return NotFound();
-            return tenBis; 
+            return tenBis;
         }
 
         [HttpPost]
-        public async System.Threading.Tasks.Task<ActionResult> Create(TenBIs newTenBIs)
+        public async Task<ActionResult> Create(TenBIs newTenBIs)
         {
             newTenBIs.UserId = GetUserId();
             var postedTenBIs = _tenBisService.Create(newTenBIs);
@@ -62,7 +59,7 @@ namespace myProject.Controllers
         }
 
         [HttpPut("{id}")]
-        public async System.Threading.Tasks.Task<ActionResult> Update(int id, TenBIs newTenBIs)
+        public async Task<ActionResult> Update(int id, TenBIs newTenBIs)
         {
             var userId = GetUserId();
             var tenBis = _tenBisService.Find(id);
@@ -78,7 +75,7 @@ namespace myProject.Controllers
         }
 
         [HttpDelete("{id}")]
-        public async System.Threading.Tasks.Task<ActionResult> Delete(int id)
+        public async Task<ActionResult> Delete(int id)
         {
             var userId = GetUserId();
             var tenBis = _tenBisService.Find(id);

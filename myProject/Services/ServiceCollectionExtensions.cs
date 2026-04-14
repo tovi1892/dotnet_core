@@ -1,5 +1,3 @@
-using Microsoft.Extensions.DependencyInjection;
-using myProject.Services;
 
 namespace myProject.Services
 {
@@ -7,7 +5,6 @@ namespace myProject.Services
     {
         public static IServiceCollection AddProjectServices(this IServiceCollection services)
         {
-            // keep using existing extension points
             services.AddTenBis();
             services.addUserService();
             services.UseActiveUser();
